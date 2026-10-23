@@ -449,6 +449,16 @@
   outline: none;
 }
 
+select.form-input {
+  cursor: pointer;
+}
+
+select.form-input option {
+  background: #0d1322;
+  color: #e2e8f0;
+  padding: 8px;
+}
+
 .modal-footer {
   padding: 14px 20px;
   background: var(--bg-surface);

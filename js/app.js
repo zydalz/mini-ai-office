@@ -126,9 +126,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnCloseSettings = document.getElementById('btnCloseSettings');
   const btnCancelSettings = document.getElementById('btnCancelSettings');
   const btnSaveSettings = document.getElementById('btnSaveSettings');
+  const btnDetectModels = document.getElementById('btnDetectModels');
   const settingsModal = document.getElementById('settingsModal');
   const apiKeyInput = document.getElementById('apiKeyInput');
   const modelNameInput = document.getElementById('modelNameInput');
+  const modelSelect = document.getElementById('modelSelect');
+  const modelHelpText = document.getElementById('modelHelpText');
 
   if (apiKeyInput && gemini) apiKeyInput.value = gemini.getApiKey();
   if (modelNameInput && gemini) modelNameInput.value = gemini.getModelName();
@@ -140,6 +143,60 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnOpenSettings) btnOpenSettings.addEventListener('click', () => toggleModal(true));
   if (btnCloseSettings) btnCloseSettings.addEventListener('click', () => toggleModal(false));
   if (btnCancelSettings) btnCancelSettings.addEventListener('click', () => toggleModal(false));
+
+  // Dynamic Model Detection Button
+  if (btnDetectModels && gemini) {
+    btnDetectModels.addEventListener('click', async () => {
+      const key = apiKeyInput ? apiKeyInput.value.trim() : '';
+      if (!key) {
+        alert('⚠️ Masukkan Google Gemini API Key Anda terlebih dahulu pada kolom di atas!');
+        if (apiKeyInput) apiKeyInput.focus();
+        return;
+      }
+
+      const origText = btnDetectModels.textContent;
+      btnDetectModels.textContent = '⏳ Mencari...';
+      btnDetectModels.disabled = true;
+
+      try {
+        const result = await gemini.listAvailableModels(key);
+        const models = result.models;
+
+        if (modelSelect) {
+          modelSelect.innerHTML = '';
+          models.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m.id;
+            opt.textContent = `${m.id} (${m.displayName || m.id})`;
+            modelSelect.appendChild(opt);
+          });
+
+          // Pilih rekomendasi model terbaik
+          const best = gemini.pickBestModel(models);
+          if (best) {
+            modelSelect.value = best.id;
+            if (modelNameInput) modelNameInput.value = best.id;
+          }
+
+          modelSelect.style.display = 'block';
+          modelSelect.onchange = () => {
+            if (modelNameInput) modelNameInput.value = modelSelect.value;
+          };
+        }
+
+        if (modelHelpText) {
+          modelHelpText.innerHTML = `✅ Ditemukan <b>${models.length} model</b> aktif untuk API Key Anda (Versi API: <code>${result.version}</code>).`;
+          modelHelpText.style.color = 'var(--accent-green)';
+        }
+
+      } catch (err) {
+        alert(`❌ Gagal mendeteksi model: ${err.message}`);
+      } finally {
+        btnDetectModels.textContent = origText;
+        btnDetectModels.disabled = false;
+      }
+    });
+  }
 
   if (btnSaveSettings) {
     btnSaveSettings.addEventListener('click', () => {
