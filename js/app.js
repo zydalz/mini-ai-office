@@ -201,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnSaveSettings) {
     btnSaveSettings.addEventListener('click', () => {
       const key = apiKeyInput ? apiKeyInput.value.trim() : '';
-      const model = modelNameInput ? modelNameInput.value.trim() : 'gemini-1.5-flash';
+      const model = modelNameInput ? modelNameInput.value.trim() : 'gemini-3.8-flash';
 
       if (key) {
         localStorage.setItem('gemini_api_key', key);
@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.removeItem('gemini_api_key');
       }
 
-      localStorage.setItem('gemini_model_name', model || 'gemini-1.5-flash');
+      localStorage.setItem('gemini_model_name', model || 'gemini-3.8-flash');
       alert('✅ Pengaturan Gemini API (Key & Model Endpoint) berhasil disimpan!');
       toggleModal(false);
     });

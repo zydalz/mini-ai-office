@@ -22,7 +22,13 @@ window.GeminiClient = class GeminiClient {
   }
 
   getModelName() {
-    return localStorage.getItem('gemini_model_name') || 'gemini-1.5-flash';
+    const saved = localStorage.getItem('gemini_model_name');
+    // Jika masih tersimpan model usang/deprecated yang ditolak Google, alihkan ke gemini-3.8-flash
+    if (!saved || saved === 'gemini-1.5-flash' || saved === 'gemini-2.5-flash') {
+      localStorage.setItem('gemini_model_name', 'gemini-3.8-flash');
+      return 'gemini-3.8-flash';
+    }
+    return saved;
   }
 
   getApiVersion() {
@@ -107,21 +113,22 @@ window.GeminiClient = class GeminiClient {
   pickBestModel(models) {
     if (!models || models.length === 0) return null;
 
-    // Prioritas Flash model (hemat biaya & cepat):
-    // 1. gemini-2.0-flash / gemini-2.0-flash-exp
-    // 2. gemini-1.5-flash-latest / gemini-1.5-flash
-    // 3. gemini-1.5-flash-002 / gemini-1.5-flash-001 / gemini-1.5-flash-8b
-    // 4. gemini-pro
+    // Prioritas model Google Gemini:
+    // 1. gemini-3.8-flash (Rekomendasi resmi Google AI)
+    // 2. gemini-3.5-flash / gemini-3.0-flash
+    // 3. gemini-2.0-flash / gemini-2.0-flash-exp
+    // 4. gemini-1.5-flash-latest / gemini-1.5-flash
     const flashModels = models.filter(m => m.id.toLowerCase().includes('flash'));
     if (flashModels.length > 0) {
       return (
-        flashModels.find(m => m.id === 'gemini-1.5-flash-latest') ||
+        flashModels.find(m => m.id === 'gemini-3.8-flash') ||
+        flashModels.find(m => m.id.includes('3.8')) ||
+        flashModels.find(m => m.id.includes('3.5')) ||
+        flashModels.find(m => m.id.includes('3.0')) ||
         flashModels.find(m => m.id === 'gemini-2.0-flash') ||
         flashModels.find(m => m.id === 'gemini-2.0-flash-exp') ||
+        flashModels.find(m => m.id === 'gemini-1.5-flash-latest') ||
         flashModels.find(m => m.id === 'gemini-1.5-flash') ||
-        flashModels.find(m => m.id.includes('flash-002')) ||
-        flashModels.find(m => m.id.includes('flash-001')) ||
-        flashModels.find(m => m.id.includes('8b')) ||
         flashModels[0]
       );
     }
@@ -184,11 +191,26 @@ window.GeminiClient = class GeminiClient {
         const errorData = await response.json().catch(() => ({}));
         const errorMsg = errorData.error?.message || `HTTP Error ${response.status} (${response.statusText})`;
 
-        // AUTO-HEALING: Jika 404 / model tidak ditemukan di versi API saat ini,
-        // jalankan discovery untuk mencari model yang didukung secara otomatis!
-        if (response.status === 404 || errorMsg.includes('not found') || errorMsg.includes('not supported for generateContent')) {
+        // AUTO-HEALING TAHAP 1: Deteksi rekomendasi model langsung dari pesan error Google
+        // Contoh pesan: "Please update your code to use models/gemini-3.8-flash for the latest features..."
+        const suggestedModelMatch = errorMsg.match(/use models\/([a-zA-Z0-9.\-_]+)/i);
+        if (suggestedModelMatch && suggestedModelMatch[1] && !isRetry) {
+          const suggested = suggestedModelMatch[1].replace(/^models\//, '');
+          console.log(`[GeminiClient Auto-Healing] Google menyarankan model: ${suggested}. Mengalihkan & mencoba ulang...`);
+          localStorage.setItem('gemini_model_name', suggested);
+          return await this.generate(prompt, systemPrompt, temperature, true);
+        }
+
+        // AUTO-HEALING TAHAP 2: Jika 404 / deprecated / no longer available / model tidak didukung
+        if (
+          response.status === 404 ||
+          errorMsg.includes('not found') ||
+          errorMsg.includes('not supported for generateContent') ||
+          errorMsg.includes('no longer available') ||
+          errorMsg.includes('deprecated')
+        ) {
           if (!isRetry) {
-            console.warn(`[GeminiClient] Model ${model} (${apiVersion}) tidak cocok. Mencoba Auto-Discovery via ListModels...`);
+            console.warn(`[GeminiClient] Model ${model} (${apiVersion}) tidak cocok atau kedaluwarsa. Mencoba Auto-Discovery via ListModels...`);
             try {
               const discovery = await this.listAvailableModels(apiKey);
               const best = this.pickBestModel(discovery.models);
