@@ -12,7 +12,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   const engine = new window.PixelOfficeEngine('officeCanvas');
 
-  // 2. Camera Navigation Controls
+  // 2. Initialize Gemini Client & Multi-Agent Orchestrator
+  const gemini = window.GeminiClient ? new window.GeminiClient() : null;
+  const orchestrator = (window.AgentOrchestrator && gemini) ? new window.AgentOrchestrator(engine, gemini) : null;
+
+  // 3. Camera Navigation Controls
   const btnZoomIn = document.getElementById('btnZoomIn');
   const btnZoomOut = document.getElementById('btnZoomOut');
   const btnResetView = document.getElementById('btnResetView');
@@ -30,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnJumpEcho) btnJumpEcho.addEventListener('click', () => engine.jumpToAgent('echo'));
   if (btnJumpCat) btnJumpCat.addEventListener('click', () => engine.jumpToAgent('cat'));
 
-  // 3. Status Preview State Buttons
+  // 4. Status Preview State Buttons
   const previewBtns = document.querySelectorAll('.btn-pill[data-state]');
   previewBtns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -42,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 4. Slide-Over Comm Drawer Controls
+  // 5. Slide-Over Comm Drawer Controls
   const btnToggleComm = document.getElementById('btnToggleComm');
   const btnCloseDrawer = document.getElementById('btnCloseDrawer');
   const commDrawer = document.getElementById('commDrawer');
@@ -70,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 5. Drawer Tab Navigation (Discussion vs Deliverables)
+  // 6. Drawer Tab Navigation (Discussion vs Deliverables)
   const tabButtons = document.querySelectorAll('.drawer-tabs .tab-btn');
   const tabPanes = document.querySelectorAll('.drawer-body .tab-pane');
 
@@ -85,10 +89,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 6. Integrated Directive Console in Chat Drawer
+  // 7. Integrated Directive Console & Orchestrator Execution
   const directiveForm = document.getElementById('directiveForm');
   const bossInput = document.getElementById('bossInput');
-  const chatPane = document.getElementById('tab-chat');
+  const btnAbort = document.getElementById('btnAbort');
 
   if (directiveForm) {
     directiveForm.addEventListener('submit', (e) => {
@@ -96,75 +100,41 @@ document.addEventListener('DOMContentLoaded', () => {
       const text = bossInput.value.trim();
       if (!text) return;
 
-      const now = new Date();
-      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      if (!gemini || !gemini.isConfigured()) {
+        alert("⚠️ Gemini API Key belum diisi!\nSilakan masukkan API Key gratis Anda pada modal pengaturan.");
+        toggleModal(true);
+        return;
+      }
 
-      // Append Boss Message
-      const bossMsg = document.createElement('div');
-      bossMsg.className = 'chat-msg';
-      bossMsg.innerHTML = `
-        <div class="chat-avatar-mini avatar-mini-boss">B</div>
-        <div class="chat-body">
-          <div class="chat-meta">
-            <span class="chat-sender boss">Boss (Directive)</span>
-            <span class="chat-time">${timeStr}</span>
-          </div>
-          <div class="chat-text">${text}</div>
-        </div>
-      `;
-      chatPane.appendChild(bossMsg);
-
-      // Trigger Canvas Engine Thinking State
-      engine.setState('thinking');
-      previewBtns.forEach(b => {
-        b.classList.toggle('active', b.dataset.state === 'thinking');
-      });
-
-      // Jump camera to Nova
-      engine.jumpToAgent('nova');
-
-      // Scroll to bottom
-      chatPane.scrollTop = chatPane.scrollHeight;
-
-      // Mock Response
-      setTimeout(() => {
-        const novaMsg = document.createElement('div');
-        novaMsg.className = 'chat-msg';
-        novaMsg.innerHTML = `
-          <div class="chat-avatar-mini avatar-mini-nova">N</div>
-          <div class="chat-body">
-            <div class="chat-meta">
-              <span class="chat-sender nova">Nova (Architect & PM)</span>
-              <span class="chat-time">${timeStr}</span>
-            </div>
-            <div class="chat-text">Instruksi diterima di Meja 1! Menguraikan arsitektur dan mendelegasikan tugas ke Spark...</div>
-          </div>
-        `;
-        chatPane.appendChild(novaMsg);
-        chatPane.scrollTop = chatPane.scrollHeight;
-        engine.setState('typing');
-        previewBtns.forEach(b => {
-          b.classList.toggle('active', b.dataset.state === 'typing');
-        });
-      }, 1200);
+      if (orchestrator) {
+        orchestrator.appendChatMessage('Boss (Directive)', text, 'boss');
+        orchestrator.runDirective(text);
+      }
 
       bossInput.value = '';
     });
   }
 
-  // 7. Settings Modal
+  if (btnAbort && orchestrator) {
+    btnAbort.addEventListener('click', () => {
+      orchestrator.abort();
+    });
+  }
+
+  // 8. Settings Modal (API Key & Model Endpoint)
   const btnOpenSettings = document.getElementById('btnOpenSettings');
   const btnCloseSettings = document.getElementById('btnCloseSettings');
   const btnCancelSettings = document.getElementById('btnCancelSettings');
   const btnSaveSettings = document.getElementById('btnSaveSettings');
   const settingsModal = document.getElementById('settingsModal');
   const apiKeyInput = document.getElementById('apiKeyInput');
+  const modelNameInput = document.getElementById('modelNameInput');
 
-  const savedKey = localStorage.getItem('gemini_api_key') || '';
-  if (apiKeyInput) apiKeyInput.value = savedKey;
+  if (apiKeyInput && gemini) apiKeyInput.value = gemini.getApiKey();
+  if (modelNameInput && gemini) modelNameInput.value = gemini.getModelName();
 
   const toggleModal = (open) => {
-    settingsModal.classList.toggle('open', open);
+    if (settingsModal) settingsModal.classList.toggle('open', open);
   };
 
   if (btnOpenSettings) btnOpenSettings.addEventListener('click', () => toggleModal(true));
@@ -173,24 +143,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (btnSaveSettings) {
     btnSaveSettings.addEventListener('click', () => {
-      const key = apiKeyInput.value.trim();
+      const key = apiKeyInput ? apiKeyInput.value.trim() : '';
+      const model = modelNameInput ? modelNameInput.value.trim() : 'gemini-1.5-flash';
+
       if (key) {
         localStorage.setItem('gemini_api_key', key);
-        alert('✅ Gemini API Key berhasil disimpan di browser!');
       } else {
         localStorage.removeItem('gemini_api_key');
-        alert('ℹ️ API Key dihapus.');
       }
+
+      localStorage.setItem('gemini_model_name', model || 'gemini-1.5-flash');
+      alert('✅ Pengaturan Gemini API (Key & Model Endpoint) berhasil disimpan!');
       toggleModal(false);
     });
   }
 
-  // 8. Copy Code Button
+  // 9. Copy Code Button
   const btnCopyCode = document.getElementById('btnCopyCode');
   if (btnCopyCode) {
     btnCopyCode.addEventListener('click', () => {
-      const code = document.querySelector('.deliverable-code code').textContent;
-      navigator.clipboard.writeText(code).then(() => {
+      const codeEl = document.querySelector('.deliverable-code code');
+      if (!codeEl) return;
+      navigator.clipboard.writeText(codeEl.textContent).then(() => {
         const originalText = btnCopyCode.textContent;
         btnCopyCode.textContent = '✅ Copied!';
         setTimeout(() => {
