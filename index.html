@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini AI Office — 16-Bit RPG Virtual Office</title>
+  <link rel="stylesheet" href="./css/main.css">
+  <link rel="stylesheet" href="./css/pixel-office.css">
+  <link rel="stylesheet" href="./css/components.css">
+</head>
+
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="brand-wrapper">
+      <div class="brand-logo-pixel"></div>
+      <h1 class="brand-title">PIXEL <span>AI OFFICE</span></h1>
+    </div>
+
+    <div class="header-actions">
+      <div class="badge-pill">
+        <span class="status-dot"></span>
+        <span>SYS: 60 FPS ENGINE</span>
+      </div>
+      <div class="badge-pill">
+        <span>RATE: 15 RPM SAFE</span>
+      </div>
+      <button id="btnOpenSettings" class="btn-icon" title="Konfigurasi API Key">
+        ⚙️ Settings
+      </button>
+
+      <!-- Primary Toggle Button for Comm Drawer -->
+      <button id="btnToggleComm" class="btn-comm-toggle" title="Buka Ruang Diskusi Tim">
+        <span class="comm-unread-dot"></span>
+        <span>💬 Agency Comm & Directives</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Full-Area Main Viewport -->
+  <main class="workspace-full-area">
+
+    <!-- Floating Top-Left Preview Mode Bar -->
+    <div class="floating-preview-bar">
+      <span class="preview-label">STATE:</span>
+      <button class="btn-pill active" data-state="idle">Idle</button>
+      <button class="btn-pill" data-state="thinking">Thinking</button>
+      <button class="btn-pill" data-state="typing">Working</button>
+      <button class="btn-pill" data-state="speaking">Speaking</button>
+    </div>
+
+    <!-- Floating Top-Right Camera Navigation Toolbar -->
+    <div class="camera-toolbar">
+      <span class="toolbar-label">CAMERA:</span>
+      <button class="btn-cam" id="btnZoomIn" title="Perbesar Tampilan">🔍 +</button>
+      <button class="btn-cam" id="btnZoomOut" title="Perkecil Tampilan">🔍 -</button>
+      <button class="btn-cam" id="btnResetView" title="Kembalikan Tampilan Tengah">🎯 Reset</button>
+      <div class="toolbar-divider"></div>
+      <button class="btn-jump jump-nova" id="btnJumpNova" title="Fokus ke Meja Nova">🧑‍💼 Nova</button>
+      <button class="btn-jump jump-spark" id="btnJumpSpark" title="Fokus ke Meja Spark">💻 Spark</button>
+      <button class="btn-jump jump-echo" id="btnJumpEcho" title="Fokus ke Meja Echo">🕵️ Echo</button>
+      <button class="btn-jump jump-cat" id="btnJumpCat" title="Fokus ke Kucing Putih Mochi">🐱 Mochi</button>
+    </div>
+
+    <!-- Canvas Container for 16-Bit RPG Office Engine -->
+    <div class="office-viewport-container">
+      <canvas id="officeCanvas"></canvas>
+    </div>
+
+    <!-- Floating Bottom-Left Hint Badge -->
+    <div class="camera-hint-badge">
+      <span class="hint-icon">✋</span>
+      <span class="hint-text">Tahan & geser (drag/touchpad) untuk jelajahi kantor | Scroll untuk zoom</span>
+    </div>
+
+  </main>
+
+  <!-- ==========================================================
+       SLIDE-OVER COMM CENTER DRAWER (Bisa dibuka/ditutup)
+       ========================================================== -->
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+  <aside class="comm-drawer" id="commDrawer">
+
+    <!-- Drawer Header -->
+    <div class="drawer-header">
+      <div class="drawer-title-group">
+        <span class="drawer-title">🛰️ AGENCY COMM CENTER</span>
+        <span class="drawer-badge">LIVE STREAM</span>
+      </div>
+      <button class="btn-close-drawer" id="btnCloseDrawer" title="Tutup Panel">✕</button>
+    </div>
+
+    <!-- Drawer Navigation Tabs -->
+    <nav class="drawer-tabs">
+      <button class="tab-btn active" data-tab="tab-chat">
+        💬 Team Discussion
+        <span class="tab-badge" id="chatCount">4</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-deliverables">
+        📦 Deliverables
+        <span class="tab-badge">Draft</span>
+      </button>
+    </nav>
+
+    <!-- Drawer Body Content -->
+    <div class="drawer-body">
+
+      <!-- TAB 1: Chat Stream with Boss & Agents -->
+      <div class="tab-pane active" id="tab-chat">
+
+        <div class="chat-msg">
+          <div class="chat-avatar-mini avatar-mini-boss">B</div>
+          <div class="chat-body">
+            <div class="chat-meta">
+              <span class="chat-sender boss">Boss (Directive)</span>
+              <span class="chat-time">17:10</span>
+            </div>
+            <div class="chat-text">Tim, buatkan kalkulator orbit gravitasi sederhana berbasis JavaScript!</div>
+          </div>
+        </div>
+
+        <div class="chat-msg">
+          <div class="chat-avatar-mini avatar-mini-nova">N</div>
+          <div class="chat-body">
+            <div class="chat-meta">
+              <span class="chat-sender nova">Nova (Architect & PM)</span>
+              <span class="chat-time">17:10</span>
+            </div>
+            <div class="chat-text">Menerima instruksi di Meja 1. Spesifikasi teknis: 1) Formula Newton F =
+              G*(m1*m2)/r^2, 2) Spark, tolong implementasikan fungsinya.</div>
+          </div>
+        </div>
+
+        <div class="chat-msg">
+          <div class="chat-avatar-mini avatar-mini-spark">S</div>
+          <div class="chat-body">
+            <div class="chat-meta">
+              <span class="chat-sender spark">Spark (Dev Builder)</span>
+              <span class="chat-time">17:11</span>
+            </div>
+            <div class="chat-text">Siap Nova, draf fungsi kalkulasi gravitasi sudah selesai dibuat di monitor kode.
+              Mengirimkan ke Echo untuk audit numerik.</div>
+          </div>
+        </div>
+
+        <div class="chat-msg">
+          <div class="chat-avatar-mini avatar-mini-echo">E</div>
+          <div class="chat-body">
+            <div class="chat-meta">
+              <span class="chat-sender echo">Echo (QA & Reviewer)</span>
+              <span class="chat-time">17:11</span>
+            </div>
+            <div class="chat-text">Memeriksa penanganan nilai nol (r = 0)... Celah *division by zero* ditemukan! Spark,
+              tambahkan validasi `if (r <= 0)`.</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- TAB 2: Deliverables Output -->
+        <div class="tab-pane" id="tab-deliverables">
+          <div class="deliverable-box">
+            <div class="deliverable-header">
+              <span class="deliverable-title">📄 gravity_calculator.js</span>
+              <button class="btn-copy" id="btnCopyCode">📋 Copy Code</button>
+            </div>
+            <pre class="deliverable-code"><code>// ==========================================
+// GRAVITATIONAL ORBIT CALCULATOR v1.0
+// Created by Spark (Dev) & Approved by Echo (QA)
+// ==========================================
+
+const G = 6.67430e-11; // Gravitational constant (m^3 kg^-1 s^-2)
+
+export function calculateGravityForce(mass1, mass2, radius) {
+  // Edge-case safeguard (audited by Echo)
+  if (radius <= 0) {
+    throw new Error("Radius must be greater than zero.");
+  }
+  
+  const force = (G * mass1 * mass2) / Math.pow(radius, 2);
+  return {
+    forceNewtons: force,
+    formula: "F = G * (m1 * m2) / r^2",
+    status: "APPROVED"
+  };
+}</code></pre>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ==========================================================
+         INTEGRATED BOSS DIRECTIVE INPUT (Di dalam ruang chat)
+         ========================================================== -->
+      <div class="drawer-command-footer">
+        <span class="command-tip">⚡ BOSS DIRECTIVE CONSOLE</span>
+        <form id="directiveForm" class="command-input-row" onsubmit="event.preventDefault();">
+          <input type="text" class="command-input" id="bossInput"
+            placeholder="Ketik instruksi baru untuk Nova, Spark, dan Echo..."
+            value="Buatkan kalkulator orbit gravitasi sederhana berbasis JavaScript!" />
+          <button type="submit" class="btn-send-directive" id="btnDeploy" title="Deploy Directive">
+            🚀 Send
+          </button>
+          <button type="button" class="btn-abort-directive" id="btnAbort" title="Emergency Abort">
+            ⛔
+          </button>
+        </form>
+      </div>
+
+  </aside>
+
+  <!-- Settings Modal (Local Storage API Key) -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <span class="modal-title">⚙️ API CONFIGURATION</span>
+        <button class="btn-icon" id="btnCloseSettings">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="apiKeyInput">Google Gemini API Key</label>
+          <input type="password" id="apiKeyInput" class="form-input" placeholder="AIzaSy..." />
+          <span class="form-help">
+            API Key disimpan secara aman di <code>localStorage</code> browser Anda. Tidak ada data yang dikirim ke
+            server pihak ketiga. Dapatkan gratis di <a href="https://aistudio.google.com" target="_blank"
+              style="color:var(--color-nova);">Google AI Studio</a>.
+          </span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-icon" id="btnCancelSettings">Batal</button>
+        <button class="btn-primary" id="btnSaveSettings">Simpan Key</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="./js/engine/pixel-canvas.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+
+</html>

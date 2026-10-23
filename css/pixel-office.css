@@ -1,0 +1,148 @@
+/* ===================================================================
+   PIXEL-OFFICE.CSS - 16-Bit RPG Pixel-Art Canvas & Camera Controls
+   =================================================================== */
+
+/* Full Viewport Canvas Container */
+.office-viewport-container {
+  flex: 1;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #090d16;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#officeCanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+#officeCanvas:active {
+  cursor: grabbing;
+}
+
+/* Floating Navigation & Camera Toolbar (Top Right) */
+.camera-toolbar {
+  position: absolute;
+  top: 18px;
+  right: 24px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 60;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.toolbar-label {
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  color: var(--text-dim);
+  margin-right: 4px;
+}
+
+.btn-cam {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: var(--font-code);
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.btn-cam:hover {
+  background: rgba(0, 242, 254, 0.15);
+  border-color: var(--color-nova);
+  color: var(--color-nova);
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--border-subtle);
+  margin: 0 2px;
+}
+
+/* Quick Jump Agent Buttons */
+.btn-jump {
+  font-family: var(--font-code);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.jump-nova {
+  background: rgba(0, 242, 254, 0.12);
+  color: var(--color-nova);
+  border-color: rgba(0, 242, 254, 0.3);
+}
+.jump-nova:hover { background: rgba(0, 242, 254, 0.25); box-shadow: 0 0 10px var(--color-nova-glow); }
+
+.jump-spark {
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--color-spark);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+.jump-spark:hover { background: rgba(245, 158, 11, 0.25); box-shadow: 0 0 10px var(--color-spark-glow); }
+
+.jump-echo {
+  background: rgba(168, 85, 247, 0.12);
+  color: var(--color-echo);
+  border-color: rgba(168, 85, 247, 0.3);
+}
+.jump-echo:hover { background: rgba(168, 85, 247, 0.25); box-shadow: 0 0 10px var(--color-echo-glow); }
+
+.jump-cat {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.jump-cat:hover { background: rgba(255, 255, 255, 0.25); box-shadow: 0 0 10px rgba(255, 255, 255, 0.4); }
+
+/* Floating Hint / Navigation Bar (Bottom Left) */
+.camera-hint-badge {
+  position: absolute;
+  bottom: 20px;
+  left: 24px;
+  background: rgba(12, 16, 26, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 60;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.hint-icon {
+  font-size: 14px;
+}
+
+.hint-text {
+  font-family: var(--font-code);
+  font-size: 11px;
+  color: var(--text-muted);
+}
