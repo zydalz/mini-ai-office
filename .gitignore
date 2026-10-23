@@ -1,0 +1,29 @@
+# Kredensial & Lingkungan Pribadi
+.env
+.env.local
+.env.*.local
+
+# Sistem Operasi
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# Editor & IDE
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+
+# Log sementara
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Build / Output (jika ada)
+node_modules/
+dist/
+.vercel/
